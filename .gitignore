@@ -1,0 +1,4 @@
+.config.old
+
+# NOTE!! Do not add .config to this in the TEMPLATE repository- the derived application
+# repositories will want to keep track of it.

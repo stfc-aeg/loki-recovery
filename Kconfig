@@ -1,0 +1,131 @@
+menu "Toolchain Configuration"
+    config TARGET_VIVADO_VERSION
+        string "What version of the Xilinx toolchain should this project check is loaded?"
+        default "v2023.2"
+
+    config AUTO_INIT_FIRMWARE_SUBMODULE
+        bool "Automatically init the firmware submodule"
+        help
+            Automatically init the firmware submodule if the directory is found to be empty.
+            If you are using local firmware you will most likely want to this to be left on,
+            so that it initialises after a fresh clone. However, it is not required if you
+            are not using local firmware.
+        default y
+        depends on USE_LOCAL_HW_BUILD
+
+    config AUTO_INIT_LOKI_SUBMODULE
+        bool "Automatically init the LOKI submodule"
+        default y
+endmenu
+
+menu "Hardware Configuration"
+    choice
+        prompt "Local Build / Prebuilt Select"
+        default USE_LOCAL_HW_BUILD
+        config USE_PREBUILT_HW
+            bool "Use a prebuilt hardware"
+            help
+                Enable to use a prebuilt hardware file from a given directory
+
+        config USE_LOCAL_HW_BUILD
+            bool "Use a local hardware build"
+            help
+                Use a local Vivado project to build the hardware design
+
+        config USE_CORE_HW_BUILD
+            bool "Use the Core LOKI Hardware Build"
+            help
+                Use the core hardware build from within the LOKI repository
+    endchoice
+
+    config VIVADO_HARDWARE_OUTPUT_DIR_RELATIVE
+        string "Local hardware build output directory"
+        help
+            Relative directory where *.xsa hardware file will be built to when using local build.
+        default "garud-fw"
+        depends on USE_LOCAL_HW_BUILD
+
+    config VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE
+        string "Local hardware Makefile target directory"
+        help
+            Relative directory where the firmware Makefile is located, to be called by this top-level one.
+        default VIVADO_HARDWARE_OUTPUT_DIR_RELATIVE
+        depends on USE_LOCAL_HW_BUILD
+
+    config PREBUILT_HW_DIR
+        string "Prebuilt hardware directory"
+        help
+            Relative directory where prebuilt *.xsa hardware file should be placed
+        default "prebuilt"
+        depends on USE_PREBUILT_HW
+endmenu
+
+menu "Software"
+    choice
+        prompt "Low-level software source selection"
+        default USE_LOKI_BUILD_SW
+        config USE_PREBUILT_SW
+            bool "Use prebuilt FSBL / PMUFW"
+            help
+                Use prebuilt fsbl.elf and pmufw.elf from this project.
+        config USE_LOCAL_SW_BUILD
+            bool "Use a local software build"
+            help
+                Use a local Makefile based build for software.
+        config USE_LOKI_BUILD_SW
+            bool "Use software build from LOKI Core"
+            help
+                Build the low-level software from LOKI core, default image.
+    endchoice
+
+    config PREBUILT_SW_DIR
+        string "Prebuilt low-level software directory"
+        help
+            Relative directory where prebuilt fsbl.elf and pmufw.elf should be placed.
+        default "./prebuilt"
+        depends on USE_PREBUILT_SW
+
+endmenu
+
+menu "LOKI Core and OS"
+
+    config loki_application_name
+        string "LOKI Application Project Name"
+        default "Unnamed LOKI Project"
+
+    config USE_APPLICATION_YOCTO_LAYER
+        bool "Enable Application Yocto Layer"
+        default n
+
+    config APPLICATION_YOCTO_LAYER_RELATIVE
+        string "Application Yocto Layer Relative Path"
+        default "meta-app"
+        depends on USE_APPLICATION_YOCTO_LAYER
+
+    config YOCTO_TMPDIR_PREFIX
+        string "Base Location"
+        default "/tmp/loki_tmpdir"
+
+    config YOCTO_TMPDIR_FORCE_UNIQUE_SUFFIX
+        bool "Add a unique suffix to the TMPDIR"
+        default y
+        help
+            Will add a unique suffix to the TMPDIR for this project, to ensure that no other
+            projects will share the same directory. This is almost always wanted to prevent
+            toolchain issues, unless moving a project.
+
+    menu "Advanced"
+        config platform_module_shortname
+            string "Platform module shortname"
+            default "4cg_2gb"
+
+        config platform_carrier
+            string "Carrier board name"
+            default "loki_1_0"
+
+        config LOKI_DIR
+            string "Relative LOKI Submodule Path"
+            default "loki"
+    endmenu
+
+endmenu

@@ -1,0 +1,171 @@
+$(info LOKI Application Makefile start)
+include .config
+
+# Config settings stored in .config, should be modified by running `makeconfig` in this directory.
+
+## !! Note: Currently I'm using subst to remove the quotes from around any string variables from the config file.
+CONFIG_TARGET_VIVADO_VERSION:=$(subst ",,${CONFIG_TARGET_VIVADO_VERSION})
+CONFIG_VIVADO_HARDWARE_OUTPUT_DIR_RELATIVE:=$(subst ",,${CONFIG_VIVADO_HARDWARE_OUTPUT_DIR_RELATIVE})
+CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE:=$(subst ",,${CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE})
+CONFIG_PREBUILT_HW_DIR:=$(subst ",,${CONFIG_PREBUILT_HW_DIR})
+CONFIG_PREBUILT_SW_DIR:=$(subst ",,${CONFIG_PREBUILT_SW_DIR})
+CONFIG_LOKI_DIR:=$(subst ",,${CONFIG_LOKI_DIR})
+CONFIG_platform_module_shortname:=$(subst ",,${CONFIG_platform_module_shortname})
+CONFIG_platform_carrier:=$(subst ",,${CONFIG_platform_carrier})
+CONFIG_loki_application_version:=$(subst ",,${CONFIG_loki_application_version})
+CONFIG_loki_application_name:=$(subst ",,${CONFIG_loki_application_name})
+CONFIG_YOCTO_TMPDIR_PREFIX:=$(subst ",,${CONFIG_YOCTO_TMPDIR_PREFIX})
+CONFIG_APPLICATION_YOCTO_LAYER_RELATIVE:=$(subst ",,${CONFIG_APPLICATION_YOCTO_LAYER_RELATIVE})
+
+VIVADO_HARDWARE_OUTPUT_DIR=$(shell pwd)/${CONFIG_VIVADO_HARDWARE_OUTPUT_DIR_RELATIVE}
+
+# If (above) environment variable USE_PREBUILT_HW is set, use the prebuilt hardware. Otherwise build the garud-fw project.
+ifeq (${CONFIG_USE_PREBUILT_HW},y)
+$(info Hardware design from pre-built XSA project from ${CONFIG_PREBUILT_HW_DIR})
+export HW_EXPORT_DIR=$(shell pwd)/${CONFIG_PREBUILT_HW_DIR}
+else ifeq ($(CONFIG_USE_LOCAL_HW_BUILD),y)
+$(info Hardware design will be build from local application-specific project at ${CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE})
+export HW_EXPORT_DIR=${VIVADO_HARDWARE_OUTPUT_DIR}
+else
+$(info Hardware deisgn will be build from default LOKI Core)
+unexport HW_EXPORT_DIR
+endif
+
+ifeq (${CONFIG_USE_PREBUILT_SW},y)
+$(info Low-level software design from pre-built binaries in ${CONFIG_PREBUILT_SW_DIR})
+export SW_EXPORT_DIR=$(shell pwd)/${CONFIG_PREBUILT_SW_DIR}
+else ifeq ($(CONFIG_USE_LOCAL_SW_BUILD),y)
+$(info Low-level software built from local project)
+$(error Local software project not yet supported)
+else
+$(info Low-level software design from default LOKI Core build)
+unexport SW_EXPORT_DIR
+endif
+
+all: .config init_submodules versioncheck ${HW_EXPORT_DIR}/design_4cg_2gb.xsa os
+
+# Auto-init of submodules depends on submodule sources and whether they are enabled
+ifeq ($(CONFIG_AUTO_INIT_FIRMWARE_SUBMODULE),y)
+ifndef CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE
+$(error Firmware build from local submodule has been selected, but no location has been found)
+else
+${CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE}/.git: | .config
+	$(info Local firmware submodule is not initialised, performing first init)
+	git submodule update --init ${CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE}
+SUBMODULES_TO_INIT:=${SUBMODULES_TO_INIT} ${CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE}/.git
+endif
+endif
+
+ifeq ($(CONFIG_AUTO_INIT_LOKI_SUBMODULE),y)
+${CONFIG_LOKI_DIR}/.git: | .config
+	$(info LOKI submodule is not initialised, performing first init)
+	git submodule update --init ${CONFIG_LOKI_DIR}
+	$(warning You will need to run make again now that the sub-makesfiles are included)
+SUBMODULES_TO_INIT:=${SUBMODULES_TO_INIT} ${CONFIG_LOKI_DIR}/.git
+endif
+init_submodules: ${SUBMODULES_TO_INIT}
+
+# Check on Xilinx tools version for the project
+CURRENT_VIVADO_VERSION=$(shell vivado -version | head -n 1 | cut -d' ' -f2)
+ifndef CONFIG_TARGET_VIVADO_VERSION
+$(info Not checking toolchain version - a target version was not defined)
+else
+ifneq (${CONFIG_TARGET_VIVADO_VERSION},${CURRENT_VIVADO_VERSION})
+$(error Vivado version incorrect, this project uses ${CONFIG_TARGET_VIVADO_VERSION}, and your version is ${CURRENT_VIVADO_VERSION})
+else
+$(info Vivado version verified as matching expected: ${CONFIG_TARGET_VIVADO_VERSION})
+endif
+endif
+
+# Check that the toolchain has been properly sourced
+export XILINX_VIVADO
+ifndef XILINX_VIVADO
+$(error Xilinx Vivado not properly sourced (XILINX_VIVADO undefined)- did you run vivado_env?)
+endif
+
+# LOKI Submodule environment setup
+export LOKI_DIR=./${CONFIG_LOKI_DIR}/
+export APPLICATION_DIR=$(shell pwd)/.
+export LOKI_ENV_DIR=$(shell pwd).
+
+
+.config: Kconfig
+	$(info Project is not configured yet, running first-time setup)
+	menuconfig
+	touch .config
+	$(info Project configuration complete- you must now re-run make)
+	exit 1
+
+# These were originally in the repo.env, now saved in repo config
+export platform_module_shortname=${CONFIG_platform_module_shortname}
+export platform_carrier=${CONFIG_platform_carrier}
+export loki_application_version=${CONFIG_loki_application_version}
+export loki_application_name=${CONFIG_loki_application_name}
+
+# The TMPDIR can be slightly more complicated, as it has a few options
+ifdef CONFIG_YOCTO_TMPDIR_FORCE_UNIQUE_SUFFIX
+$(info yocto tmpdir using a unique suffix generated by hashing the current working directory)
+YOCTO_TMPDIR_SUFFIX=_$(shell echo $$(pwd | sha256sum 2> /dev/null || echo default) | cut -f 1 -d " ")
+else
+YOCTO_TMPDIR_SUFFIX=
+endif
+export yocto_tmpdir=${CONFIG_YOCTO_TMPDIR_PREFIX}${YOCTO_TMPDIR_SUFFIX}
+$(warning Yocto tmpdir ${yocto_tmpdir})
+
+# If custom yocto layer is enabled, use the specified directory.
+ifeq (${CONFIG_USE_APPLICATION_YOCTO_LAYER},y)
+$(info Using a custom yocto layer at relative directory ${CONFIG_APPLICATION_YOCTO_LAYER_RELATIVE})
+export yocto_user_layer_0=$(shell pwd)/${CONFIG_APPLICATION_YOCTO_LAYER_RELATIVE}
+endif
+
+VIVADO_SOFTWARE_OUTPUT_DIR=???
+# Extra rules to make the prebuilt files in case of hardware design file change.
+${VIVADO_HARDWARE_OUTPUT_DIR}/design_4cg_2gb.xsa:
+	$(info Build is using the local project for hardware)
+	# Build the hardware and software using the firmware submodule
+	$(MAKE) -C ./${CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE}/ all
+
+# Include recipes to take the environment and run the configuration using the autoconf params
+# Provides loki-configure-hw, loki-configure-sw, loki-configure-os
+${CONFIG_LOKI_DIR}/config.mk: .config ${CONFIG_LOKI_DIR}/.git
+	# This touch will force it to re-evaulate the include, meaning the entire file will re-run
+	touch ${CONFIG_LOKI_DIR}/config.mk
+
+$(info inlcuding ${CONFIG_LOKI_DIR}/config.mk)
+include ${CONFIG_LOKI_DIR}/config.mk
+
+.PHONY: all os hardware software project local_hardware versioncheck init_submodules loki_config_mk
+
+firmware-project:
+	# Instead of actually building the hardware, just make the project in Vivado and stop.
+	# This now prepares the garud-fw project.
+	$(MAKE) -C  ./${CONFIG_VIVADO_HARDWARE_MAKEFILE_DIR_RELATIVE}/ project
+
+hardware: loki-configure-hw ${HW_EXPORT_DIR}/design_4cg_2gb.xsa
+	$(info calling the LOKI hardware build with specified XSA location ${HW_EXPORT_DIR})
+	$(MAKE) -C ${LOKI_DIR} hardware
+
+software: loki-configure-sw hardware
+	$(MAKE) -C ${LOKI_DIR} software
+
+os: loki-configure-os software
+	$(MAKE) -C ${LOKI_DIR} os
+
+mostlyclean:
+	unset HW_EXPORT_DIR
+	$(MAKE) -C ${LOKI_DIR} mostlyclean
+	$(MAKE) -C ./garud-fw/ mostlyclean
+
+clean:
+	unset HW_EXPORT_DIR
+	$(MAKE) -C ${LOKI_DIR} clean
+	$(MAKE) -C ./garud-fw/ clean
+
+distclean:
+	unset HW_EXPORT_DIR
+	$(MAKE) -C ${LOKI_DIR} distclean
+	$(MAKE) -C ./garud-fw/ distclean
+
+clobber:
+	unset HW_EXPORT_DIR
+	$(MAKE) -C ${LOKI_DIR} clobber

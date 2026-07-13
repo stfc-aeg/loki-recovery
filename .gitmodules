@@ -1,0 +1,6 @@
+[submodule "loki"]
+	path = loki
+	url = git@github.com:stfc-aeg/loki.git
+[submodule "garud-fw"]
+	path = garud-fw
+	url = git@github.com:stfc-aeg/garud-fw.git
