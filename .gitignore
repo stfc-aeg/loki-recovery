@@ -1,4 +1,7 @@
 .config.old
-
+control/src/carrier/__pycache__
+control/src/selftest.egg-info
+control/src/carrier/_version.py
+**.swp
 # NOTE!! Do not add .config to this in the TEMPLATE repository- the derived application
 # repositories will want to keep track of it.
