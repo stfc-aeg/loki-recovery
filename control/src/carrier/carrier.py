@@ -24,10 +24,21 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
     def set_LED_trigger(self, blank):
         self.LED_trigger = True
 
+    def set_LED_list(self, array):
+        if type(array) != list:
+            logging.error("inputted type is not list")
+            raise TypeError("inputted type is not list")
+        for LED in array:
+            if not LED in ["led0", "led1", "led2", "led3"]:
+                raise ValueError('Inputted value is not one of "led0", "led1", "led2", "led3"' +str(LED)+ " is the bad input") 
+        
+        self.LED_list = array
+
     def _gen_app_paramtree(self):
         # This custom parameter tree function must be overridden, even if it is empty for now
         custom_pt = {
-            'run_LEDs' : (None, self.set_LED_trigger)
+            'run_LEDs' : (None, self.set_LED_trigger),
+            'LED_list' : (lambda: self.LED_list, self.set_LED_list)
         }
         return custom_pt
     
