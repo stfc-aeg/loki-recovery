@@ -12,16 +12,22 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
 
         kwargs.setdefault('pin_config_is_input_leds_enable', False) 
 
+        self.LED_trigger = False
+        self.LED_list = ["led0", "led1", "led2", "led3", "led2", "led1", "led0" ]
+
         # MUST call the superclass init LAST
         super(LokiCarrier_self_test, self).__init__(**kwargs)
         self._logger.info('LOKI super init complete')
 
         self.leds_enable()
+    #function held in parameter tree, used to run LED pattern
+    def set_LED_trigger(self, blank):
+        self.LED_trigger = True
 
     def _gen_app_paramtree(self):
         # This custom parameter tree function must be overridden, even if it is empty for now
         custom_pt = {
-            'run_LEDs' : (None, lambda var: self.LED_pattern(["led0", "led1", "led2", "led3", "led2", "led1", "led0" ]))
+            'run_LEDs' : (None, self.set_LED_trigger)
         }
         return custom_pt
     
@@ -34,4 +40,18 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
            self.leds_set_led(LED, 1)
            time.sleep(1)
            self.leds_set_led(LED, 0)
-           
+
+    def _start_io_loops(self, options):
+        super(LokiCarrier_self_test, self)._start_io_loops(options)
+
+        self.add_thread("LEDs thread", self.LED_loop)
+        self.watchdog_add_thread("LEDs thread", 30, lambda: logging.error("!!!! LED loop has failed or a pattern > 30 seconds long has been run !!!!"))
+
+    def LED_loop(self):
+        while not self.TERMINATE_THREADS:
+            self.watchdog_kick()
+            if self.LED_trigger:
+                self.LED_pattern(self.LED_list)
+                self.LED_trigger = False
+            time.sleep(1)
+
