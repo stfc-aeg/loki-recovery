@@ -1,5 +1,6 @@
 $( document ).ready(function() {
     poll_update()
+    pull_LED_list()
 });
 
 function poll_update() {
@@ -14,6 +15,15 @@ function is_LED_test_running() {
         var pattern_trigger = response.application.run_LEDs;
         pattern_trigger = pattern_trigger ? "yes" : "no";
         $('#pattern_running').html(pattern_trigger);
+    });
+}
+
+function pull_LED_list() {
+
+    $.getJSON('/api/0.1/selftest/application', function(response) {
+        var LED_list = response.application.LED_list;
+        
+        $('#LED_list').val(LED_list);
     });
 }
 
