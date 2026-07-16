@@ -19,13 +19,13 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
 
         self.GPIO_trigger = False
 
-        kwargs.setdefault('pin_config_id_output', 'EMIO21')
-        kwargs.setdefault('pin_config_active_low_output', False)
-        kwargs.setdefault('pin_config_is_input_output', False)
-        kwargs.setdefault('pin_config_default_value_output', 0)     # Active high so disabled by default
+        kwargs.setdefault('pin_config_id_pin1', 'EMIO21')
+        kwargs.setdefault('pin_config_active_low_pin1', False)
+        kwargs.setdefault('pin_config_is_input_pin1', False)
+        kwargs.setdefault('pin_config_default_value_pin1', 0)     # Active high so disabled by default
 
-        kwargs.setdefault('pin_config_id_input', 'EMIO22')
-        kwargs.setdefault('pin_config_is_input_input', True)
+        kwargs.setdefault('pin_config_id_pin2', 'EMIO22')
+        kwargs.setdefault('pin_config_is_input_pin2', True)
         self.flag = False
         # MUST call the superclass init LAST
         super(LokiCarrier_self_test, self).__init__(**kwargs)
@@ -117,12 +117,13 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
             self.watchdog_kick()
             
             if self.GPIO_trigger:
-                self.set_pin_value('output', True)
-                logging.info(self.get_pin_value('input'))
+                self.set_pin_value('pin1', True)
+                logging.info(self.get_pin_value('pin2'))
                 time.sleep(1)
-                self.set_pin_value('output', False)
-                logging.info(self.get_pin_value('input'))
+                self.set_pin_value('pin1', False)
+                logging.info(self.get_pin_value('pin2'))
                 time.sleep(1)
                 self.GPIO_trigger = False
 
+            
             
