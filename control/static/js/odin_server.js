@@ -1,6 +1,7 @@
 $( document ).ready(function() {
     poll_update()
     pull_LED_list()
+    pull_working()
 });
 
 function poll_update() {
@@ -31,7 +32,10 @@ function input_LED_list(){
 
     var LED_list = document.getElementById("LED_list").value;
     console.log(LED_list)
-    LED_array = LED_list.split(" ");
+    LED_array = LED_list.split(",");
+    LED_array.forEach((item, index) => {
+  LED_array[index] = item.trim()
+})
     console.log(LED_array)
 
     $.ajax({
@@ -56,9 +60,21 @@ function run_LED_test(){
     });
 }
 
+
+function pull_working(){
+    $.getJSON('/api/0.1/selftest/application', function(response) {
+        var working = response.application.run_GPIO;
+        
+        if (working === true){ 
+            if (working === false){
+                working = working ? "yes" : "no";}}
+        $('#working').html(working);
+    })
+}
+
 //runs GPIO test
 function run_GPIO_test(){
-    input_LED_list();
+    // input_LED_list();
     var GPIO_value = document.getElementById("run_GPIO_test").value;
     console.log("Running GPIO test")
     $.ajax({
@@ -66,5 +82,11 @@ function run_GPIO_test(){
         url: '/api/0.1/selftest/application',
         contentType: "application/json",
         data: JSON.stringify({'run_GPIO': true})
+        
     });
+    console.log("done PUT");
+    pull_working();
 }
+
+
+

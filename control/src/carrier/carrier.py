@@ -18,6 +18,7 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
         self.LED_list = ["led0", "led1", "led2", "led3", "led2", "led1", "led0" ]
 
         self.GPIO_trigger = False
+        self.working = False
 
         kwargs.setdefault('pin_config_id_pin1', 'EMIO21')
         kwargs.setdefault('pin_config_active_low_pin1', False)
@@ -67,6 +68,7 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
             logging.error("inputted type is not list")
             raise TypeError("inputted type is not list")
         for LED in array:
+            print(LED)
             if not LED in self._leds_namelist:
                 raise ValueError('Inputted value is not one of '+ str(self._leds_namelist)+ ": " +str(LED)+ " is the bad input") 
         
@@ -77,7 +79,7 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
         custom_pt = {
             'run_LEDs' : (lambda: self.LED_trigger, self.set_LED_trigger),
             'LED_list' : (lambda: self.LED_list, self.set_LED_list),
-            'run_GPIO' : (None, self.set_GPIO_trigger )   
+            'run_GPIO' : (lambda: self.working, self.set_GPIO_trigger )   
         }
         return custom_pt
     
@@ -114,16 +116,37 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
     def GPIO_loop(self):
         
         while not self.TERMINATE_THREADS:
+            #logging.info("kicked")
             self.watchdog_kick()
             
             if self.GPIO_trigger:
                 self.set_pin_value('pin1', True)
                 logging.info(self.get_pin_value('pin2'))
+                if self.get_pin_value('pin2') == 1:
+                    self.working = True
+                else:
+                    self.working = False
                 time.sleep(1)
                 self.set_pin_value('pin1', False)
                 logging.info(self.get_pin_value('pin2'))
+                if self.get_pin_value('pin2') == 0 and self.working == True:
+                    self.working = True
+                else:
+                    self.working = False
                 time.sleep(1)
+                logging.info(self.working)
                 self.GPIO_trigger = False
 
+
+'''
+ def GPIO_loop(self):
+        
+        while not self.TERMINATE_THREADS:
+            if self.flag:
+                logging.info(self.ltc_read_channel_direct(4))
+                self.watchdog_kick()
+                time.sleep(1)
+
+'''
             
             
