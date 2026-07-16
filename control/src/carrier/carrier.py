@@ -116,7 +116,6 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
     def GPIO_loop(self):
         
         while not self.TERMINATE_THREADS:
-            #logging.info("kicked")
             self.watchdog_kick()
             
             if self.GPIO_trigger:
