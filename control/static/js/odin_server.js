@@ -84,7 +84,6 @@ function run_GPIO_test(){
         data: JSON.stringify({'run_GPIO': true})
         
     });
-    console.log("done PUT");
     pull_working();
 }
 
