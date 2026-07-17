@@ -1,6 +1,7 @@
 $( document ).ready(function() {
+    initial_pulls()
     poll_update()
-    pull_LED_list()
+    
 });
 
 function poll_update() {
@@ -8,6 +9,18 @@ function poll_update() {
     setTimeout(poll_update, 500);   
 }
 
+function initial_pulls(){
+
+      $.getJSON('/api/0.1/selftest/application', function(response) {
+        var LED_list = response.application.LED_list;
+        
+        $('#LED_list').val(LED_list);
+
+        var selected = response.application.which_pins;
+        var selected_id = "#pin_" + selected[0] + selected[1];
+        $(selected_id).prop("checked", true);
+    });
+}
 
 function pull_LED_list() {
 
@@ -35,13 +48,10 @@ function pull_variables(){
 function input_LED_list(){
 
     var LED_list = document.getElementById("LED_list").value;
-    console.log(LED_list)
     LED_array = LED_list.split(",");
     LED_array.forEach((item, index) => {
   LED_array[index] = item.trim()
 })
-    console.log(LED_array)
-
     $.ajax({
         type: "PUT",
         url: '/api/0.1/selftest/application',
@@ -84,13 +94,11 @@ function run_GPIO_test(){
 
 function do_gpio_test() {
     var selected_option = $("input[name='gpio_test_option']:checked").val();
-    console.log("GPIO test with selected option " + selected_option);
     
     selected_option = selected_option.split(",");
     selected_option.forEach((item, index) => {
   selected_option[index] = item.trim()
 })
-    console.log(selected_option)
     
     $.ajax({
         type: "PUT",
