@@ -150,18 +150,3 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
                 logging.info(self.working)
                 self.GPIO_trigger = False
 
-
-
-
-'''
- def GPIO_loop(self):
-        
-        while not self.TERMINATE_THREADS:
-            if self.flag:
-                logging.info(self.ltc_read_channel_direct(4))
-                self.watchdog_kick()
-                time.sleep(1)
-
-'''
-            
-            
