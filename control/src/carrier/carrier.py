@@ -19,7 +19,7 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
 
         self.GPIO_trigger = False
         self.working = False
-
+        # Initialises pins 1 and 2
         kwargs.setdefault('pin_config_id_pin1', 'EMIO21')
         kwargs.setdefault('pin_config_active_low_pin1', False)
         kwargs.setdefault('pin_config_is_input_pin1', False)
@@ -27,6 +27,16 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
 
         kwargs.setdefault('pin_config_id_pin2', 'EMIO22')
         kwargs.setdefault('pin_config_is_input_pin2', True)
+
+        # Initialises pins 3 and 4
+        kwargs.setdefault('pin_config_id_pin3', 'EMIO23')
+        kwargs.setdefault('pin_config_active_low_pin3', False)
+        kwargs.setdefault('pin_config_is_input_pin3', False)
+        kwargs.setdefault('pin_config_default_value_pin3', 0)     # Active high so disabled by default
+
+        kwargs.setdefault('pin_config_id_pin4', 'EMIO24')
+        kwargs.setdefault('pin_config_is_input_pin4', True)
+
         self.flag = False
         # MUST call the superclass init LAST
         super(LokiCarrier_self_test, self).__init__(**kwargs)
