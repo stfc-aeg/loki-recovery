@@ -1,23 +1,13 @@
 $( document ).ready(function() {
     poll_update()
     pull_LED_list()
-    pull_working()
 });
 
 function poll_update() {
-   is_LED_test_running();
+   pull_variables();
     setTimeout(poll_update, 500);   
 }
 
-// Presents whether the LED test is running
-function is_LED_test_running() {
-
-    $.getJSON('/api/0.1/selftest/application', function(response) {
-        var pattern_trigger = response.application.run_LEDs;
-        pattern_trigger = pattern_trigger ? "yes" : "no";
-        $('#pattern_running').html(pattern_trigger);
-    });
-}
 
 function pull_LED_list() {
 
@@ -27,6 +17,20 @@ function pull_LED_list() {
         $('#LED_list').val(LED_list);
     });
 }
+
+
+function pull_variables(){
+    $.getJSON('/api/0.1/selftest/application', function(response) {
+// Presents whether the GPIO test has been successful        
+        var working = response.application.run_GPIO;        
+        $('#working').html(working ? "yes" : "no");
+// Presents whether the LED test is running
+        var pattern_trigger = response.application.run_LEDs;
+        $('#pattern_running').html(pattern_trigger ? "yes" : "no");
+
+})
+}
+
 
 function input_LED_list(){
 
@@ -61,16 +65,6 @@ function run_LED_test(){
 }
 
 
-function pull_working(){
-    $.getJSON('/api/0.1/selftest/application', function(response) {
-        var working = response.application.run_GPIO;
-        
-        if (working === true){ 
-            if (working === false){
-                working = working ? "yes" : "no";}}
-        $('#working').html(working);
-    })
-}
 
 //runs GPIO test
 function run_GPIO_test(){
@@ -84,15 +78,20 @@ function run_GPIO_test(){
         data: JSON.stringify({'run_GPIO': true})
         
     });
-    pull_working();
 }
-
 
 
 
 function do_gpio_test() {
     var selected_option = $("input[name='gpio_test_option']:checked").val();
     console.log("GPIO test with selected option " + selected_option);
+    
+    selected_option = selected_option.split(",");
+    selected_option.forEach((item, index) => {
+  selected_option[index] = item.trim()
+})
+    console.log(selected_option)
+    
     $.ajax({
         type: "PUT",
         url: '/api/0.1/selftest/application',
