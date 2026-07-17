@@ -88,22 +88,16 @@ function run_GPIO_test(){
 }
 
 
-function pull_which_pins12(){
+
+
+function do_gpio_test() {
+    var selected_option = $("input[name='gpio_test_option']:checked").val();
+    console.log("GPIO test with selected option " + selected_option);
     $.ajax({
         type: "PUT",
         url: '/api/0.1/selftest/application',
         contentType: "application/json",
-        data: JSON.stringify({'which_pins12':true})
-    });
-
-}
-
-function pull_which_pins34(){
-    $.ajax({
-        type: "PUT",
-        url: '/api/0.1/selftest/application',
-        contentType: "application/json",
-        data: JSON.stringify({'which_pins34':true})
+        data: JSON.stringify({which_pins:selected_option})
     });
 }
 
