@@ -88,4 +88,22 @@ function run_GPIO_test(){
 }
 
 
+function pull_which_pins12(){
+    $.ajax({
+        type: "PUT",
+        url: '/api/0.1/selftest/application',
+        contentType: "application/json",
+        data: JSON.stringify({'which_pins12':true})
+    });
+
+}
+
+function pull_which_pins34(){
+    $.ajax({
+        type: "PUT",
+        url: '/api/0.1/selftest/application',
+        contentType: "application/json",
+        data: JSON.stringify({'which_pins34':true})
+    });
+}
 

@@ -45,11 +45,11 @@
           <p>&nbsp;<input type="button" id="run_LED_test" value = "run LED test" onclick="run_LED_test()"/></p>
           <p>Input pattern: &nbsp;<input type="text" id="LED_list" value = LED_list size="30"/></p>
           <p>&nbsp;<input type="button" id="run_GPIO_test" value = "Test GPIO pins" onclick="run_GPIO_test()"/></p>
-          <input type="radio" id="1&2" name="which_pins" value="pins1&2">
+          <input type="radio" id="1&2" name="which_pins" value="pins1&2"onclick="pull_which_pins12()">
           <label for="1&2">pins 1&2</label> &nbsp;<span id="1&2" name="which_pin">&nbsp;</span>
-          <input type="radio" id="3&4" name="which_pins" value="pins3&4">
+          <input type="radio" id="3&4" name="which_pins" value="pins3&4" onclick="pull_which_pins34()">
           <label for="3&4">pins 3&4</label> &nbsp;<span id="3&4" name="which_pin">&nbsp;</span>
-          <p>are pins working?:&nbsp;<span id="working"">&nbsp;</span></p>
+          <p>are pins working?:&nbsp;<span id="working""&nbsp;</span></p>
         </div>
 
       </div><!-- /.container -->

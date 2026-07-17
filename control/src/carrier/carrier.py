@@ -19,6 +19,8 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
 
         self.GPIO_trigger = False
         self.working = False
+        self.which_pins =[1,2]
+
         # Initialises pins 1 and 2
         kwargs.setdefault('pin_config_id_pin1', 'EMIO21')
         kwargs.setdefault('pin_config_active_low_pin1', False)
@@ -72,6 +74,12 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
     def set_GPIO_trigger(self, blank):
         self.GPIO_trigger = True
 
+    def set_pins12(self, blank):
+        self.which_pins = [1,2]
+
+    def set_pins34(self, blank):
+        self.which_pins = [3,4]
+
     # Function held in parameter tree, sanatises inputed list of LEDs and makes it the used list
     def set_LED_list(self, array):
         if type(array) != list:
@@ -89,7 +97,9 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
         custom_pt = {
             'run_LEDs' : (lambda: self.LED_trigger, self.set_LED_trigger),
             'LED_list' : (lambda: self.LED_list, self.set_LED_list),
-            'run_GPIO' : (lambda: self.working, self.set_GPIO_trigger )   
+            'run_GPIO' : (lambda: self.working, self.set_GPIO_trigger ),
+            'which_pins12' : (None, self.set_pins12),
+            'which_pins34' : (None, self.set_pins34)  
         }
         return custom_pt
     
@@ -127,8 +137,8 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
         
         while not self.TERMINATE_THREADS:
             self.watchdog_kick()
-            
             if self.GPIO_trigger:
+                logging.info(self.which_pins)
                 self.set_pin_value('pin1', True)
                 logging.info(self.get_pin_value('pin2'))
                 if self.get_pin_value('pin2') == 1:
