@@ -139,22 +139,44 @@ class LokiCarrier_self_test (LokiCarrier_1v0):
             self.watchdog_kick()
             if self.GPIO_trigger:
                 logging.info(self.which_pins)
-                self.set_pin_value('pin1', True)
-                logging.info(self.get_pin_value('pin2'))
-                if self.get_pin_value('pin2') == 1:
-                    self.working = True
-                else:
-                    self.working = False
-                time.sleep(1)
-                self.set_pin_value('pin1', False)
-                logging.info(self.get_pin_value('pin2'))
-                if self.get_pin_value('pin2') == 0 and self.working == True:
-                    self.working = True
-                else:
-                    self.working = False
-                time.sleep(1)
-                logging.info(self.working)
-                self.GPIO_trigger = False
+                if self.which_pins == [1,2]:
+                    logging.info("testing pins 1&2")
+                    self.set_pin_value('pin1', True)
+                    logging.info(self.get_pin_value('pin2'))
+                    if self.get_pin_value('pin2') == 1:
+                        self.working = True
+                    else:
+                        self.working = False
+                    time.sleep(1)
+                    self.set_pin_value('pin1', False)
+                    logging.info(self.get_pin_value('pin2'))
+                    if self.get_pin_value('pin2') == 0 and self.working == True:
+                        self.working = True
+                    else:
+                        self.working = False
+                    time.sleep(1)
+                    logging.info(self.working)
+                    self.GPIO_trigger = False
+                elif self.which_pins == [3,4]:
+                    logging.info("testing pins 3&4")
+                    self.set_pin_value('pin3', True)
+                    logging.info(self.get_pin_value('pin4'))
+                    if self.get_pin_value('pin4') == 1:
+                        self.working = True
+                    else:
+                        self.working = False
+                    time.sleep(1)
+                    self.set_pin_value('pin3', False)
+                    logging.info(self.get_pin_value('pin4'))
+                    if self.get_pin_value('pin2') == 0 and self.working == True:
+                        self.working = True
+                    else:
+                        self.working = False
+                    time.sleep(1)
+                    logging.info(self.working)
+                    self.GPIO_trigger = False
+
+
 
 
 '''
